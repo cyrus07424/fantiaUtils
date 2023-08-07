@@ -10,7 +10,7 @@ public interface Configurations {
 	/**
 	 * ChromeDriverの実行ファイルのパス.
 	 */
-	String CHROME_DRIVER_EXECUTABLE_PATH = "./drivers/chromedriver-windows-32bit.exe";
+	String CHROME_DRIVER_EXECUTABLE_PATH = "./drivers/chromedriver-windows-32bit/chromedriver.exe";
 
 	/**
 	 * ブラウザをヘッドレスモードで使用するか.
