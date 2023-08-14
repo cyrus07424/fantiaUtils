@@ -1,16 +1,14 @@
 package constants;
 
+import java.io.File;
+import java.nio.file.Path;
+
 /**
  * 環境設定.
  *
  * @author cyrus
  */
 public interface Configurations {
-
-	/**
-	 * ChromeDriverの実行ファイルのパス.
-	 */
-	String CHROME_DRIVER_EXECUTABLE_PATH = "./drivers/chromedriver-windows-32bit/chromedriver.exe";
 
 	/**
 	 * ブラウザをヘッドレスモードで使用するか.
@@ -20,10 +18,15 @@ public interface Configurations {
 	/**
 	 * Fantiaアカウントのメールアドレス.
 	 */
-	final String FANTIA_EMAIL = "CHANGE ME";
+	final String FANTIA_EMAIL = "CHANGEME";
 
 	/**
 	 * Fantiaアカウントのパスワード.
 	 */
-	final String FANTIA_PASSWORD = "CHANGE ME";
+	final String FANTIA_PASSWORD = "CHANGEME";
+
+	/**
+	 * クッキーCSVファイルの出力先.
+	 */
+	Path STATE_PATH = new File("data/state.json").toPath();
 }

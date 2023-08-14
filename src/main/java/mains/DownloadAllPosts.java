@@ -1,18 +1,22 @@
 package mains;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.options.LoadState;
 
 import utils.FileHelper;
-import utils.SeleniumHelper;
+import utils.PlaywrightHelper;
 
 /**
  * ファンクラブの全ての投稿をダウンロード.
  *
  * @author cyrus
  */
-public class DownloadAllPosts extends AbstractCrawler {
+public class DownloadAllPosts {
 
 	/**
 	 * ダウンロードするファンクラブのID一覧.
@@ -25,75 +29,89 @@ public class DownloadAllPosts extends AbstractCrawler {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// クロール処理
-		crawlMain((WebDriver webDriver) -> {
-			// 全てのファンクラブのIDに対して実行
-			for (int fanclubId : TARGET_FANCLUB_ID_ARRAY) {
+		System.out.println("■start.");
 
-				// 処理済みの投稿数
-				int processedPostCount = 0;
-				try {
-					// 投稿一覧画面を表示
-					webDriver.get(String.format("https://fantia.jp/fanclubs/%d/posts", fanclubId));
+		// Playwrightを作成
+		try (Playwright playwright = Playwright.create()) {
+			// ブラウザ起動オプションを取得
+			BrowserType.LaunchOptions launchOptions = PlaywrightHelper.getLaunchOptions();
 
-					// 先頭の投稿を取得して遷移
-					WebElement firstPost = webDriver.findElement(By.cssSelector(".post a"));
-					webDriver.get(firstPost.getAttribute("href"));
-					SeleniumHelper.waitForBrowserToLoadCompletely(webDriver);
+			// ブラウザを起動
+			try (Browser browser = playwright.chromium().launch(launchOptions)) {
+				System.out.println("■launched");
 
-					while (true) {
-						processedPostCount++;
+				// ブラウザコンテキストオプションを取得
+				Browser.NewContextOptions newContextOptions = PlaywrightHelper.getNewContextOptions(true);
 
-						// FIXME スリープ
-						Thread.sleep(5000);
+				// ブラウザコンテキストを取得
+				try (BrowserContext context = browser.newContext(newContextOptions)) {
+					// ページを取得
+					try (Page page = context.newPage()) {
+						// 全てのファンクラブのIDに対して実行
+						for (int fanclubId : TARGET_FANCLUB_ID_ARRAY) {
 
-						// 投稿内の全ての画像に対して実行
-						for (WebElement img : webDriver.findElements(By.cssSelector(".the-post .post-thumbnail img"))) {
-							// 画像のURLを取得
-							String src = img.getAttribute("src");
-							System.out.println("src:" + src);
-
-							// 保存
-							FileHelper.saveContent(String.valueOf(fanclubId), src);
-						}
-
-						// サムネイルのリンクを取得
-						for (WebElement thumbnail : webDriver
-								.findElements(By.cssSelector(".image-thumbnails.full-xs a"))) {
+							// 処理済みの投稿数
+							int processedPostCount = 0;
 							try {
-								// リンクをクリック
-								thumbnail.click();
-								SeleniumHelper.waitForBrowserToLoadCompletely(webDriver);
+								// 投稿一覧画面を表示
+								page.navigate(String.format("https://fantia.jp/fanclubs/%d/posts", fanclubId));
 
-								// スライドショー内の画像を取得
-								WebElement img = webDriver.findElement(By.cssSelector("#image-slideshow img"));
+								// 先頭の投稿を取得して遷移
+								page.locator(".post a").first().click();
 
-								// 画像のURLを取得
-								String src = img.getAttribute("src");
-								System.out.println("src:" + src);
+								while (true) {
+									processedPostCount++;
 
-								// 保存
-								FileHelper.saveContent(String.valueOf(fanclubId), src);
+									// 読み込み完了まで待機
+									page.waitForLoadState(LoadState.NETWORKIDLE);
 
-								// 閉じるボタンを取得してクリック
-								webDriver.findElement(By.cssSelector("#image-slideshow .btn-dark")).click();
-								SeleniumHelper.waitForBrowserToLoadCompletely(webDriver);
+									// 投稿内の全ての画像に対して実行
+									for (Locator img : page.locator(".the-post .post-thumbnail img").all()) {
+										// 画像のURLを取得
+										String src = img.getAttribute("src");
+										System.out.println("src:" + src);
+
+										// 保存
+										FileHelper.saveContent(String.valueOf(fanclubId), src);
+									}
+
+									// サムネイルのリンクを取得
+									for (Locator thumbnail : page.locator(".image-thumbnails.full-xs a").all()) {
+										try {
+											// リンクをクリック
+											thumbnail.click();
+
+											// スライドショー内の画像を取得
+											Locator img = page.locator("#image-slideshow img");
+
+											// 画像のURLを取得
+											String src = img.getAttribute("src");
+											System.out.println("src:" + src);
+
+											// 保存
+											FileHelper.saveContent(String.valueOf(fanclubId), src);
+
+											// 閉じるボタンを取得してクリック
+											page.locator("#image-slideshow .btn-dark").click();
+										} catch (Exception e) {
+											e.printStackTrace();
+										}
+									}
+
+									// 前の投稿リンクを取得して遷移
+									page.locator("a.post-prev.post-pager").first().click();
+								}
 							} catch (Exception e) {
 								e.printStackTrace();
+							} finally {
+								System.out.println("processedPostCount:" + processedPostCount);
 							}
 						}
-
-						// 前の投稿リンクを取得して遷移
-						WebElement postPrev = webDriver.findElement(By.cssSelector("a.post-prev.post-pager"));
-						webDriver.get(postPrev.getAttribute("href"));
-						SeleniumHelper.waitForBrowserToLoadCompletely(webDriver);
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				} finally {
-					System.out.println("processedPostCount:" + processedPostCount);
 				}
 			}
-		});
+		} finally {
+			System.out.println("■done.");
+		}
 	}
 }

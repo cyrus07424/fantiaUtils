@@ -29,7 +29,7 @@ public class FileHelper {
 
 			// 保存先ファイルを作成
 			String fileName = FilenameUtils.getName(url.getPath());
-			File destinationFile = new File(String.format("./downloads/%s/%s", prefix, fileName));
+			File destinationFile = new File(String.format("./data/%s/%s", prefix, fileName));
 			if (!destinationFile.exists()) {
 				Files.createDirectories(destinationFile.getParentFile().toPath());
 

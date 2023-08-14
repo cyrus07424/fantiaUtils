@@ -6,40 +6,12 @@
 	<artifactId>fantiaUtils</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 	</properties>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>com.github.webdriverextensions</groupId>
-				<artifactId>webdriverextensions-maven-plugin</artifactId>
-				<version>3.4.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>install-drivers</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<drivers>
-						<driver>
-							<name>chromedriver</name>
-							<platform>windows</platform>
-							<bit>32</bit>
-						</driver>
-					</drivers>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-
 	<dependencies>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -47,9 +19,9 @@
 			<version>2.13.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-java</artifactId>
-			<version>4.11.0</version>
+			<groupId>com.microsoft.playwright</groupId>
+			<artifactId>playwright</artifactId>
+			<version>1.35.1</version>
 		</dependency>
 	</dependencies>
 </project>
