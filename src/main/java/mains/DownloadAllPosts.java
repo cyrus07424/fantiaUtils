@@ -6,6 +6,7 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.Response;
 import com.microsoft.playwright.options.LoadState;
 
 import utils.FileHelper;
@@ -21,10 +22,10 @@ public class DownloadAllPosts {
 	/**
 	 * ダウンロードするファンクラブのID一覧.
 	 */
-	private static final int[] TARGET_FANCLUB_ID_ARRAY = {};
+	private static final int[] TARGET_FANCLUB_ID_ARRAY = { 485135 };
 
 	/**
-	 * main.
+	 * メイン.
 	 *
 	 * @param args
 	 */
@@ -45,6 +46,11 @@ public class DownloadAllPosts {
 
 				// ブラウザコンテキストを取得
 				try (BrowserContext context = browser.newContext(newContextOptions)) {
+					// FIXME 拡張子が画像のリクエストは中断
+					context.route("**/*.{png,jpg,jpeg}", route -> {
+						route.abort();
+					});
+
 					// ページを取得
 					try (Page page = context.newPage()) {
 						// 全てのファンクラブのIDに対して実行
@@ -54,7 +60,8 @@ public class DownloadAllPosts {
 							int processedPostCount = 0;
 							try {
 								// 投稿一覧画面を表示
-								page.navigate(String.format("https://fantia.jp/fanclubs/%d/posts", fanclubId));
+								Response response = page
+										.navigate(String.format("https://fantia.jp/fanclubs/%d/posts", fanclubId));
 
 								// 先頭の投稿を取得して遷移
 								page.locator(".post a").first().click();
@@ -65,14 +72,24 @@ public class DownloadAllPosts {
 									// 読み込み完了まで待機
 									page.waitForLoadState(LoadState.NETWORKIDLE);
 
+									// FIXME 429 Too Many Requestsエラーを回避
+									if (response.status() == 429) {
+										page.wait(10000);
+										page.reload();
+									}
+
 									// 投稿内の全ての画像に対して実行
 									for (Locator img : page.locator(".the-post .post-thumbnail img").all()) {
-										// 画像のURLを取得
-										String src = img.getAttribute("src");
-										System.out.println("src:" + src);
+										try {
+											// 画像のURLを取得
+											String src = img.getAttribute("src");
+											System.out.println("src:" + src);
 
-										// 保存
-										FileHelper.saveContent(String.valueOf(fanclubId), src);
+											// 保存
+											FileHelper.saveContent(String.valueOf(fanclubId), src);
+										} catch (Exception e) {
+											e.printStackTrace();
+										}
 									}
 
 									// サムネイルのリンクを取得

@@ -16,17 +16,7 @@ public interface Configurations {
 	boolean USE_HEADLESS_MODE = false;
 
 	/**
-	 * Fantiaアカウントのメールアドレス.
-	 */
-	final String FANTIA_EMAIL = "CHANGEME";
-
-	/**
-	 * Fantiaアカウントのパスワード.
-	 */
-	final String FANTIA_PASSWORD = "CHANGEME";
-
-	/**
-	 * クッキーCSVファイルの出力先.
+	 * ブラウザのステートの出力先.
 	 */
 	Path STATE_PATH = new File("data/state.json").toPath();
 }
