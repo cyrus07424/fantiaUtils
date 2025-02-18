@@ -66,6 +66,9 @@ public class LoginFantia {
 						// ログインボタンをクリック
 						page.locator("#new_user button.btn").click();
 
+						// FIXME
+						Thread.sleep(10000);
+
 						// 読み込み完了まで待機
 						page.waitForLoadState(LoadState.NETWORKIDLE);
 					} finally {
@@ -74,6 +77,8 @@ public class LoginFantia {
 					}
 				}
 			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		} finally {
 			System.out.println("■done.");
 		}

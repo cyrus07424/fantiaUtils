@@ -22,7 +22,7 @@ public class DownloadAllPosts {
 	/**
 	 * ダウンロードするファンクラブのID一覧.
 	 */
-	private static final int[] TARGET_FANCLUB_ID_ARRAY = { 485135 };
+	private static final int[] TARGET_FANCLUB_ID_ARRAY = {};
 
 	/**
 	 * メイン.
@@ -64,13 +64,17 @@ public class DownloadAllPosts {
 										.navigate(String.format("https://fantia.jp/fanclubs/%d/posts", fanclubId));
 
 								// 先頭の投稿を取得して遷移
-								page.locator(".post a").first().click();
+								page.locator("#main .post a").first().click();
 
 								while (true) {
 									processedPostCount++;
 
-									// 読み込み完了まで待機
-									page.waitForLoadState(LoadState.NETWORKIDLE);
+									try {
+										// 読み込み完了まで待機
+										page.waitForLoadState(LoadState.NETWORKIDLE);
+									} catch (Exception e) {
+										// NOP
+									}
 
 									// FIXME 429 Too Many Requestsエラーを回避
 									if (response.status() == 429) {
